@@ -1,5 +1,6 @@
 import { useSession, signOut } from 'next-auth/react';
 import { useRouter } from 'next/router';
+import Nav from '../components/Nav';
 
 export default function Dashboard() {
   const { data: session } = useSession();
@@ -11,7 +12,8 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="h-screen flex flex-col items-center justify-center bg-gray-100">
+    <div className="h-screen flex flex-col items-center justify-center bg-black">
+      <Nav />
       <h1 className="text-3xl font-bold mb-4">Welcome, {session.user.email}</h1>
       <button
         onClick={() => signOut({ callbackUrl: '/' })} // Redirect to index after sign-out
