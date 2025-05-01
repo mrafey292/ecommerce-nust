@@ -2,6 +2,7 @@ import { useSession, signIn } from 'next-auth/react';
 import { useState } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
+import styles from './login.module.css';
 
 export default function Home() {
   const { data: session } = useSession();
@@ -23,69 +24,56 @@ export default function Home() {
     if (result?.error) {
       setError(result.error);
     } else {
-      router.push('/dashboard'); // Redirect to a new page on successful sign-in
+      router.push('/dashboard');
     }
   };
 
   if (session) {
-    router.push('/dashboard'); // Redirect if already signed in
-    return null; // Prevent rendering the login page
+    router.push('/dashboard');
+    return null;
   }
 
   return (
-    <div className="bg-blue-900 w-screen h-screen flex items-center justify-center">
-      <div className="bg-white p-6 rounded shadow-md w-96">
-        <h1 className="text-2xl font-bold mb-4 text-center">Sign In</h1>
+    <div className={styles.container}>
+      <div className={styles.card}>
+        <h1 className={styles.heading}>Sign In</h1>
 
-        {/* Google Sign-In */}
-        <button
-          onClick={() => signIn('google')}
-          className="bg-blue-500 text-white w-full py-2 rounded mb-4 hover:bg-blue-600"
-        >
+        <button onClick={() => signIn('google')} className={styles.googleButton}>
           Sign In with Google
         </button>
 
-        {/* Divider */}
-        <div className="text-center text-gray-500 my-4">OR</div>
+        <div className={styles.divider}>OR</div>
 
-        {/* Email/Password Sign-In Form */}
         <form onSubmit={handleEmailSignIn}>
-          <div className="mb-4">
-            <label className="block text-gray-700">Email</label>
+          <div className={styles.inputGroup}>
+            <label>Email</label>
             <input
               type="email"
-              className="w-full p-2 border border-gray-300 rounded"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
             />
           </div>
-          <div className="mb-4">
-            <label className="block text-gray-700">Password</label>
+          <div className={styles.inputGroup}>
+            <label>Password</label>
             <input
               type="password"
-              className="w-full p-2 border border-gray-300 rounded"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
             />
           </div>
-          <button
-            type="submit"
-            className="w-full bg-green-500 text-white py-2 rounded hover:bg-green-600"
-          >
+          <button type="submit" className={styles.submitButton}>
             Sign In
           </button>
         </form>
 
-        {/* Error Message */}
-        {error && <p className="mt-4 text-center text-red-500">{error}</p>}
+        {error && <p className={styles.error}>{error}</p>}
 
-        {/* Signup Link */}
-        <p className="mt-4 text-center text-gray-700">
-          Don't have an account?{' '}
+        <p className={styles.signup}>
+          Don&apos;t have an account?{' '}
           <Link href="/signup">
-            <span className="text-blue-500 underline cursor-pointer">Sign Up</span>
+            <span>Sign Up</span>
           </Link>
         </p>
       </div>

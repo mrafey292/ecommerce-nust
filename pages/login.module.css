@@ -1,0 +1,99 @@
+.container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    /* background-color: #1e3a8a; */
+    background-color: #e5e5f7;
+    opacity: 1;
+    background-image:  repeating-radial-gradient( circle at 0 0, transparent 0, #e5e5f7 23px ), repeating-linear-gradient( #444cf755, #444cf7 );
+  }
+  
+  .card {
+    background-color: white;
+    padding: 2rem;
+    border-radius: 1.5rem;
+    box-shadow: 10px 10px 10px #444df7aa;
+    width: 24rem;
+  }
+  
+  .heading {
+    color: #1c206caa;
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-bottom: 1.5rem;
+    text-align: center;
+  }
+  
+  .googleButton {
+    background-color: #3b82f6;
+    color: white;
+    width: 100%;
+    padding: 0.5rem;
+    border-radius: 0.375rem;
+    margin-bottom: 1rem;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+  }
+  
+  .googleButton:hover {
+    background-color: #2563eb;
+  }
+  
+  .divider {
+    text-align: center;
+    color: #6b7280;
+    margin: 1rem 0;
+  }
+  
+  .inputGroup {
+    margin-bottom: 1rem;
+  }
+  
+  .inputGroup label {
+    color: #374151;
+    display: block;
+    margin-bottom: 0.5rem;
+  }
+  
+  .inputGroup input {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.375rem;
+  }
+  
+  .submitButton {
+    width: 100%;
+    background-color: #10b981;
+    color: white;
+    padding: 0.5rem;
+    border: none;
+    border-radius: 0.375rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+  }
+  
+  .submitButton:hover {
+    background-color: #059669;
+  }
+  
+  .error {
+    margin-top: 1rem;
+    text-align: center;
+    color: #ef4444;
+  }
+  
+  .signup {
+    margin-top: 1rem;
+    text-align: center;
+    color: #374151;
+  }
+  
+  .signup a {
+    color: #3b82f6;
+    text-decoration: underline;
+    cursor: pointer;
+  }
+  
