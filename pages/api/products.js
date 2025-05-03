@@ -8,6 +8,7 @@ export default async function handle(req, res) {
   if (method === "GET") {
     if (req.query?.id) {
       const productDoc = await Product.findOne({ _id: req.query.id });
+      res.json(productDoc);
     } else {
       res.json(await Product.find());
     }

@@ -21,7 +21,10 @@
     "next-cloudinary": "^6.16.0",
     "postcss": "^8.5.3",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "react-sortablejs": "^6.1.4",
+    "react-spinners": "^0.17.0",
+    "sortablejs": "^1.15.6"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
