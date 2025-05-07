@@ -88,142 +88,150 @@ export default function ProductForm({
   }
 
   const propertiesToFill = [];
-  if (categories.length > 0 && category) {
-    let catInfo = categories.find(({ _id }) => _id === category);
+if (categories.length > 0 && category) {
+  let catInfo = categories.find(({ _id }) => _id === category);
+  if (catInfo) {
     propertiesToFill.push(...catInfo.properties);
     while (catInfo?.parent?._id) {
       const parentCat = categories.find(
         ({ _id }) => _id === catInfo?.parent?._id
       );
+      if (!parentCat) break; // Break the loop if the parent category is not found
       propertiesToFill.push(...parentCat.properties);
       catInfo = parentCat;
     }
   }
+}
   return (
-    <form onSubmit={saveProduct}>
-      <div className="mb-4">
-        <label className="text-gray-700 text-sm mb-2" htmlFor="name">
-          Product Name
-        </label>
-        <input
-          className="shadow appearance-none border rounded w-full py-1 px-2 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-          id="name"
-          type="text"
-          placeholder="Product Name"
-          onChange={(ev) => setTitle(ev.target.value)}
-          value={title}
-        />
-      </div>
-      <div className="mb-4">
-        <label>Category</label>
-        <select
-          value={category}
-          onChange={(ev) => setCategory(ev.target.value)}
-        >
-          <option>Uncategorized</option>
-          {categories.length > 0 &&
-            categories.map((c) => <option value={c._id}>{c.name}</option>)}
-        </select>
-
-        {propertiesToFill.length > 0 &&
-          propertiesToFill.map((p) => (
-            <div className="flex gap-1" key={p.name}>
-              <div>{p.name}</div>
-              <select
-                value={productProperties[p.name]}
-                onChange={(ev) => {
-                  setProductProp(p.name, ev.target.value);
-                }}
-              >
-                {p.values.map((v) => (
-                  <option key={v} value={v}>
-                    {v}
-                  </option>
-                ))}
-              </select>
-            </div>
-          ))}
-
-        <label>Photos</label>
-        <div className="mb-2 flex flex-wrap gap-1">
-          <ReactSortable
-            list={images}
-            className="flex flex-wrap gap-1"
-            setList={updateImagesOrder}
-          >
-            {!!images?.length &&
-              images.map((link) => (
-                <div
-                  key={link}
-                  className="h-24 bg-white p-4 shadow-sm rounded-sm border border-gray-200"
-                >
-                  <img src={link} alt="" className="rounded-lg" />
-                </div>
-              ))}
-          </ReactSortable>
-          {isUploading && (
-            <div className="h-24 flex items-center">
-              <Spinner />
-            </div>
-          )}
-          <label className="w-24 h-24 cursor-pointer text-center flex flex-col items-center justify-center text-sm gap-1 text-primary rounded-sm bg-white shadow-sm border border-primary">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={1.5}
-              stroke="currentColor"
-              className="w-6 h-6"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"
-              />
-            </svg>
-            <div>Add image</div>
-            <input type="file" onChange={uploadImages} className="hidden" />
+    <div className="max-w-4xl mx-auto bg-white shadow-md rounded-lg p-6">
+      <h2 className="text-2xl font-semibold text-gray-800 mb-6">Product Form</h2>
+      <form onSubmit={saveProduct}>
+        <div className="mb-6">
+          <label className="block text-gray-700 text-sm font-medium mb-2" htmlFor="name">
+            Product Name
           </label>
+          <input
+            className="shadow-sm appearance-none border border-gray-300 rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
+            id="name"
+            type="text"
+            placeholder="Enter product name"
+            onChange={(ev) => setTitle(ev.target.value)}
+            value={title}
+          />
         </div>
-      </div>
-
-      <div className="mb-4">
-        <label
-          className="block text-gray-700 text-sm font-bold mb-2"
-          htmlFor="price"
+        <div className="mb-6">
+          <label className="block text-gray-700 text-sm font-medium mb-2">Category</label>
+          <select
+            className="shadow-sm border border-gray-300 rounded-lg w-full py-2 px-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
+            value={category}
+            onChange={(ev) => setCategory(ev.target.value)}
+          >
+            <option>Uncategorized</option>
+            {categories.length > 0 &&
+              categories.map((c) => <option key={c._id} value={c._id}>{c.name}</option>)}
+          </select>
+  
+          {propertiesToFill.length > 0 &&
+            propertiesToFill.map((p) => (
+              <div className="flex items-center gap-2 mt-4" key={p.name}>
+                <div className="text-gray-700 font-medium">{p.name}</div>
+                <select
+                  className="shadow-sm border border-gray-300 rounded-lg py-1 px-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
+                  value={productProperties[p.name]}
+                  onChange={(ev) => setProductProp(p.name, ev.target.value)}
+                >
+                  {p.values.map((v) => (
+                    <option key={v} value={v}>
+                      {v}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            ))}
+        </div>
+  
+        <div className="mb-6">
+          <label className="block text-gray-700 text-sm font-medium mb-2">Photos</label>
+          <div className="mb-4 flex flex-wrap gap-2">
+            <ReactSortable
+              list={images}
+              className="flex flex-wrap gap-2"
+              setList={updateImagesOrder}
+            >
+              {!!images?.length &&
+                images.map((link) => (
+                  <div
+                    key={link}
+                    className="h-24 w-24 bg-white p-2 shadow-sm rounded-lg border border-gray-300"
+                  >
+                    <img src={link} alt="" className="rounded-lg object-cover h-full w-full" />
+                  </div>
+                ))}
+            </ReactSortable>
+            {isUploading && (
+              <div className="h-24 w-24 flex items-center justify-center">
+                <Spinner />
+              </div>
+            )}
+            <label className="w-24 h-24 cursor-pointer flex flex-col items-center justify-center text-sm gap-1 text-cyan-600 rounded-lg bg-gray-100 shadow-sm border border-cyan-500 hover:bg-cyan-50">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={1.5}
+                stroke="currentColor"
+                className="w-6 h-6"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"
+                />
+              </svg>
+              <div>Add image</div>
+              <input type="file" onChange={uploadImages} className="hidden" />
+            </label>
+          </div>
+        </div>
+  
+        <div className="mb-6">
+          <label
+            className="block text-gray-700 text-sm font-medium mb-2"
+            htmlFor="price"
+          >
+            Price
+          </label>
+          <input
+            className="shadow-sm appearance-none border border-gray-300 rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
+            id="price"
+            type="text"
+            placeholder="Enter price"
+            onChange={(ev) => setPrice(ev.target.value)}
+            value={price}
+          />
+        </div>
+        <div className="mb-6">
+          <label
+            className="block text-gray-700 text-sm font-medium mb-2"
+            htmlFor="description"
+          >
+            Description
+          </label>
+          <textarea
+            className="shadow-sm appearance-none border border-gray-300 rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
+            id="description"
+            placeholder="Enter product description"
+            onChange={(ev) => setDescription(ev.target.value)}
+            value={description}
+          ></textarea>
+        </div>
+        <button
+          className="bg-cyan-600 hover:bg-cyan-500 text-white font-medium py-2 px-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2"
+          type="submit"
         >
-          Price
-        </label>
-        <input
-          className="shadow appearance-none border rounded w-full py-1 px-2 text-gray-700 font-regular leading-tight focus:outline-none focus:shadow-outline"
-          id="price"
-          type="text"
-          placeholder="Price"
-          onChange={(ev) => setPrice(ev.target.value)}
-          value={price}
-        />
-      </div>
-      <div className="mb-4">
-        <label
-          className="block text-gray-700 text-sm font-bold mb-2"
-          htmlFor="description"
-        >
-          Description
-        </label>
-        <textarea
-          className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-          id="description"
-          placeholder="Description"
-          onChange={(ev) => setDescription(ev.target.value)}
-          value={description}
-        ></textarea>
-      </div>
-      <button
-        className="bg-cyan-800 hover:bg-cyan-700 text-white py-1 px-3 rounded focus:outline-none focus:shadow-outline"
-        type="submit"
-      >
-        Save Product
-      </button>
-    </form>
+          Save Product
+        </button>
+      </form>
+    </div>
   );
 }
