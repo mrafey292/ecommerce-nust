@@ -29,21 +29,37 @@ function Categories({ swal }) {
       return;
     }
 
-    const data = { name, parentCategory };
+    const data = {
+      name,
+      parentCategory,
+      properties: properties.map((p) => ({
+        name: p.name,
+        values: p.values.split(","),
+      })),
+    };
+
     if (editedCategory) {
-      data._id = editedCategory._id; // Fixed typo: `editCategory` -> `editedCategory`
+      data._id = editedCategory._id;
       await axios.put("/api/categories", data);
       setEditedCategory(null);
     } else {
       await axios.post("/api/categories", data);
     }
     setName("");
+    setParentCategory("");
+    setProperties([]);
     fetchCategories();
   }
   function editCategory(category) {
     setEditedCategory(category);
     setName(category.name);
     setParentCategory(category.parent?._id);
+    setProperties(
+      category.properties.map(({ name, values }) => ({
+        name,
+        values: values.join(","),
+      }))
+    );
   }
   function deleteCategory(category) {
     swal
@@ -67,6 +83,30 @@ function Categories({ swal }) {
   function addProperty() {
     setProperties((prev) => {
       return [...prev, { name: "", value: "" }];
+    });
+  }
+
+  function handlePropertyNameChange(index, property, newName) {
+    setProperties((prev) => {
+      const properties = [...prev];
+      properties[index].name = newName;
+      return properties;
+    });
+  }
+
+  function handlePropertyValuesChange(index, property, newValues) {
+    setProperties((prev) => {
+      const properties = [...prev];
+      properties[index].values = newValues;
+      return properties;
+    });
+  }
+
+  function removeProperty(indexToRemove) {
+    setProperties((prev) => {
+      return [...prev].filter((p, pIndex) => {
+        return pIndex !== indexToRemove;
+      });
     });
   }
   return (
@@ -137,7 +177,7 @@ function Categories({ swal }) {
           <button
             onClick={addProperty}
             type="button"
-            className="btn-default text-sm"
+            className="btn-default text-sm mb-2"
             style={{
               backgroundColor: "#007bff",
               color: "#fff",
@@ -150,11 +190,15 @@ function Categories({ swal }) {
             Add new property
           </button>
           {properties.length > 0 &&
-            properties.map((property) => (
-              <div className="flex gap-1" style={{ marginTop: "10px" }}>
+            properties.map((property, index) => (
+              <div className="flex gap-1 mb-2" style={{ marginTop: "10px" }}>
                 <input
                   type="text"
                   value={property.name}
+                  className="mb-0"
+                  onChange={(ev) =>
+                    handlePropertyNameChange(index, property, ev.target.value)
+                  }
                   placeholder="Property Name"
                   style={{
                     flex: 1,
@@ -166,6 +210,10 @@ function Categories({ swal }) {
                 <input
                   type="text"
                   value={property.values}
+                  className="mb-0"
+                  onChange={(ev) =>
+                    handlePropertyValuesChange(index, property, ev.target.value)
+                  }
                   placeholder="Values, comma separated"
                   style={{
                     flex: 1,
@@ -174,87 +222,112 @@ function Categories({ swal }) {
                     borderRadius: "4px",
                   }}
                 />
+                <button
+                  type="button"
+                  onClick={() => removeProperty(index)}
+                  className="btn-default"
+                >
+                  Remove
+                </button>
               </div>
             ))}
         </div>
-        <button
-          type="submit"
-          className="btn-primary py-1"
+        <div className="flex gap-1">
+          {editedCategory && (
+            <button
+              type="button"
+              onClick={() => {
+                setEditedCategory(null);
+                setName("");
+                setParentCategory("");
+                setProperties([]);
+              }}
+              className="btn-default"
+            >
+              Cancel
+            </button>
+          )}
+          <button
+            type="submit"
+            className="btn-primary py-1"
+            style={{
+              backgroundColor: "#28a745",
+              color: "#fff",
+              padding: "10px 20px",
+              border: "none",
+              borderRadius: "4px",
+              cursor: "pointer",
+            }}
+          >
+            Save
+          </button>
+        </div>
+      </form>
+      {!editedCategory && (
+        <table
+          className="basic mt-4"
           style={{
-            backgroundColor: "#28a745",
-            color: "#fff",
-            padding: "10px 20px",
-            border: "none",
-            borderRadius: "4px",
-            cursor: "pointer",
+            width: "100%",
+            borderCollapse: "collapse",
+            marginTop: "20px",
           }}
         >
-          Save
-        </button>
-      </form>
-      <table
-        className="basic mt-4"
-        style={{
-          width: "100%",
-          borderCollapse: "collapse",
-          marginTop: "20px",
-        }}
-      >
-        <thead>
-          <tr>
-            <td style={{ border: "1px solid #ccc", padding: "10px" }}>
-              Category Name
-            </td>
-            <td style={{ border: "1px solid #ccc", padding: "10px" }}>
-              Parent Category
-            </td>
-            <td style={{ border: "1px solid #ccc", padding: "10px" }}></td>
-          </tr>
-        </thead>
-        <tbody>
-          {categories.length > 0 &&
-            categories.map((category) => (
-              <tr>
-                <td style={{ border: "1px solid #ccc", padding: "10px" }}>
-                  {category.name}
-                </td>
-                <td style={{ border: "1px solid #ccc", padding: "10px" }}>
-                  {category?.parent?.name}
-                </td>
-                <td style={{ border: "1px solid #ccc", padding: "10px" }}>
-                  <button
-                    onClick={() => editCategory(category)}
-                    className="btn-primary mr-1"
-                    style={{
-                      backgroundColor: "#007bff",
-                      color: "#fff",
-                      padding: "5px 10px",
-                      border: "none",
-                      borderRadius: "4px",
-                      cursor: "pointer",
-                    }}
-                  >
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => deleteCategory(category)}
-                    className="btn-primary"
-                    style={{
-                      backgroundColor: "#dc3545",
-                      color: "#fff",
-                      padding: "5px 10px",
-                      border: "none",
-                      borderRadius: "4px",
-                      cursor: "pointer",
-                    }}
-                  >
-                    Delete
-                  </button>
-                </td>
-              </tr>
-            ))}
-        </tbody>
-      </table>
+          <thead>
+            <tr>
+              <td style={{ border: "1px solid #ccc", padding: "10px" }}>
+                Category Name
+              </td>
+              <td style={{ border: "1px solid #ccc", padding: "10px" }}>
+                Parent Category
+              </td>
+              <td style={{ border: "1px solid #ccc", padding: "10px" }}></td>
+            </tr>
+          </thead>
+          <tbody>
+            {categories.length > 0 &&
+              categories.map((category) => (
+                <tr>
+                  <td style={{ border: "1px solid #ccc", padding: "10px" }}>
+                    {category.name}
+                  </td>
+                  <td style={{ border: "1px solid #ccc", padding: "10px" }}>
+                    {category?.parent?.name}
+                  </td>
+                  <td style={{ border: "1px solid #ccc", padding: "10px" }}>
+                    <button
+                      onClick={() => editCategory(category)}
+                      className="btn-primary mr-1"
+                      style={{
+                        backgroundColor: "#007bff",
+                        color: "#fff",
+                        padding: "5px 10px",
+                        border: "none",
+                        borderRadius: "4px",
+                        cursor: "pointer",
+                      }}
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => deleteCategory(category)}
+                      className="btn-primary"
+                      style={{
+                        backgroundColor: "#dc3545",
+                        color: "#fff",
+                        padding: "5px 10px",
+                        border: "none",
+                        borderRadius: "4px",
+                        cursor: "pointer",
+                      }}
+                    >
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+              ))}
+          </tbody>
+        </table>
+      )}
     </Layout>
   );
 }
