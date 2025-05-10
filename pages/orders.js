@@ -1,14 +1,37 @@
 import Layout from "@/components/Layout";
 import { useEffect, useState } from "react";
 import axios from "axios";
+import { useRouter } from "next/router";
 
 export default function OrdersPage() {
   const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const router = useRouter();
+
   useEffect(() => {
-    axios.get("/api/orders").then((response) => {
-      setOrders(response.data);
-    });
+    setLoading(true);
+    axios.get("/api/orders")
+      .then((response) => {
+        setOrders(response.data);
+      })
+      .catch((error) => {
+        console.error("Error fetching orders:", error);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   }, []);
+
+  if (loading) {
+    return (
+      <Layout>
+        <div className="flex justify-center items-center h-screen">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
+        </div>
+      </Layout>
+    );
+  }
+
   return (
     <Layout>
       <h1 className="text-3xl font-semibold text-gray-800 mb-6">Orders</h1>
@@ -20,13 +43,13 @@ export default function OrdersPage() {
                 Date
               </th>
               <th className="border border-gray-200 px-4 py-2 text-left text-gray-600 font-medium">
-                Paid
-              </th>
-              <th className="border border-gray-200 px-4 py-2 text-left text-gray-600 font-medium">
                 Recipient
               </th>
               <th className="border border-gray-200 px-4 py-2 text-left text-gray-600 font-medium">
-                Products
+                Status
+              </th>
+              <th className="border border-gray-200 px-4 py-2 text-left text-gray-600 font-medium">
+                Total Items
               </th>
             </tr>
           </thead>
@@ -35,10 +58,14 @@ export default function OrdersPage() {
               orders.map((order) => (
                 <tr
                   key={order._id}
-                  className="hover:bg-gray-50 transition-colors"
+                  onClick={() => router.push(`/orders/${order._id}`)}
+                  className="hover:bg-gray-50 transition-colors cursor-pointer"
                 >
                   <td className="border border-gray-200 px-4 py-2 text-gray-700">
-                    {new Date(order.createdAt).toLocaleString()}
+                    {new Date(order.createdAt).toLocaleDateString()}
+                  </td>
+                  <td className="border border-gray-200 px-4 py-2 text-gray-700">
+                    {order.name}
                   </td>
                   <td className="border border-gray-200 px-4 py-2">
                     <span
@@ -48,26 +75,21 @@ export default function OrdersPage() {
                           : "bg-red-100 text-red-600"
                       }`}
                     >
-                      {order.paid ? "YES" : "NO"}
+                      {order.paid ? "PAID" : "PENDING"}
                     </span>
                   </td>
                   <td className="border border-gray-200 px-4 py-2 text-gray-700">
-                    {order.name} {order.email}
-                    <br />
-                    {order.city} {order.postalCode} {order.country}
-                    <br />
-                    {order.streetAddress}
-                  </td>
-                  <td className="border border-gray-200 px-4 py-2 text-gray-700">
-                    {order.line_items.map((item, index) => (
-                      <div key={index} className="mb-2">
-                        <span className="font-medium">{item.title}</span> x{" "}
-                        {item.quantity} @ ${item.price.toFixed(2)}
-                      </div>
-                    ))}
+                    {order.line_items?.reduce((acc, item) => acc + item.quantity, 0) || 0}
                   </td>
                 </tr>
               ))}
+            {orders.length === 0 && (
+              <tr>
+                <td colSpan="4" className="text-center py-4 text-gray-500">
+                  No orders found
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
