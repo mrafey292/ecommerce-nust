@@ -1,7 +1,5 @@
-import {BounceLoader} from "react-spinners";
-
 export default function Spinner() {
   return (
-    <BounceLoader color={'#1E3A8A'} speedMultiplier={2} />
+    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
   );
 }

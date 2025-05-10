@@ -2,6 +2,7 @@ import Layout from "@/components/Layout";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { withSwal } from "react-sweetalert2";
+import Spinner from "@/components/Spinner";
 
 function Deals({ swal }) {
   const [products, setProducts] = useState([]);
@@ -16,20 +17,35 @@ function Deals({ swal }) {
   const [endDate, setEndDate] = useState("");
   const [isActive, setIsActive] = useState(true);
 
+  // Loading states
+  const [loadingProducts, setLoadingProducts] = useState(true);
+  const [loadingDeals, setLoadingDeals] = useState(true);
+  const [saving, setSaving] = useState(false);
+
   useEffect(() => {
     fetchProducts();
     fetchDeals();
   }, []);
 
   function fetchProducts() {
+    setLoadingProducts(true);
     axios.get("/api/products").then((result) => {
       setProducts(result.data);
+      setLoadingProducts(false);
+    }).catch(error => {
+      console.error("Error fetching products:", error);
+      setLoadingProducts(false);
     });
   }
 
   function fetchDeals() {
+    setLoadingDeals(true);
     axios.get("/api/deals").then((result) => {
       setDeals(result.data);
+      setLoadingDeals(false);
+    }).catch(error => {
+      console.error("Error fetching deals:", error);
+      setLoadingDeals(false);
     });
   }
 
@@ -44,25 +60,37 @@ function Deals({ swal }) {
       return;
     }
 
-    const data = {
-      productId: selectedProduct,
-      discountType,
-      discountAmount: parseFloat(discountAmount),
-      startDate,
-      endDate,
-      isActive,
-    };
+    setSaving(true);
+    try {
+      const data = {
+        productId: selectedProduct,
+        discountType,
+        discountAmount: parseFloat(discountAmount),
+        startDate,
+        endDate,
+        isActive,
+      };
 
-    if (editedDeal) {
-      data._id = editedDeal._id;
-      await axios.put("/api/deals", data);
-      setEditedDeal(null);
-    } else {
-      await axios.post("/api/deals", data);
+      if (editedDeal) {
+        data._id = editedDeal._id;
+        await axios.put("/api/deals", data);
+        setEditedDeal(null);
+      } else {
+        await axios.post("/api/deals", data);
+      }
+
+      resetForm();
+      fetchDeals();
+    } catch (error) {
+      console.error("Error saving deal:", error);
+      swal.fire({
+        title: "Error",
+        text: "Failed to save deal. Please try again.",
+        icon: "error",
+      });
+    } finally {
+      setSaving(false);
     }
-
-    resetForm();
-    fetchDeals();
   }
 
   function resetForm() {
@@ -95,8 +123,17 @@ function Deals({ swal }) {
       reverseButtons: true,
     }).then(async (result) => {
       if (result.isConfirmed) {
-        await axios.delete("/api/deals?_id=" + deal._id);
-        fetchDeals();
+        try {
+          await axios.delete("/api/deals?_id=" + deal._id);
+          fetchDeals();
+        } catch (error) {
+          console.error("Error deleting deal:", error);
+          swal.fire({
+            title: "Error",
+            text: "Failed to delete deal. Please try again.",
+            icon: "error",
+          });
+        }
       }
     });
   }
@@ -124,6 +161,7 @@ function Deals({ swal }) {
                   value={selectedProduct}
                   onChange={(ev) => setSelectedProduct(ev.target.value)}
                   className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                  disabled={loadingProducts}
                 >
                   <option value="">Select a product</option>
                   {products.map(product => (
@@ -180,18 +218,18 @@ function Deals({ swal }) {
               <div className="form-group">
                 <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
                 <div className="flex items-center space-x-2">
-                  <div className="relative inline-block w-12 mr-2 align-middle select-none transition duration-200 ease-in">
+                  <label className="relative inline-flex items-center cursor-pointer">
                     <input
                       type="checkbox"
                       checked={isActive}
                       onChange={(ev) => setIsActive(ev.target.checked)}
-                      className="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer"
+                      className="sr-only peer"
                     />
-                    <label className="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
-                  </div>
-                  <span className={`text-sm ${isActive ? 'text-green-600' : 'text-gray-500'}`}>
-                    {isActive ? 'Active' : 'Inactive'}
-                  </span>
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                    <span className="ml-3 text-sm font-medium text-gray-700">
+                      {isActive ? 'Active' : 'Inactive'}
+                    </span>
+                  </label>
                 </div>
               </div>
             </div>
@@ -213,68 +251,87 @@ function Deals({ swal }) {
                 type="submit"
                 className="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all"
               >
-                {editedDeal ? "Update Deal" : "Create Deal"}
+                {saving ? (
+                  <div className="flex items-center gap-2">
+                    <Spinner />
+                    <span>Saving...</span>
+                  </div>
+                ) : (
+                  <span>{editedDeal ? "Update Deal" : "Create Deal"}</span>
+                )}
               </button>
             </div>
           </form>
         </div>
 
-        <div className="bg-white rounded-xl shadow-md overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50">
+        {loadingDeals ? (
+          <div className="flex justify-center items-center h-64">
+            <Spinner />
+          </div>
+        ) : (
+          <div className="bg-white rounded-lg shadow-md overflow-hidden">
+            <table className="w-full border-collapse">
+              <thead className="bg-cyan-800 text-white">
                 <tr>
-                  <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">Product</th>
-                  <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">Discount</th>
-                  <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">Period</th>
-                  <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">Status</th>
-                  <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">Actions</th>
+                  <th className="text-left py-3 px-4">Product</th>
+                  <th className="text-left py-3 px-4">Discount</th>
+                  <th className="text-left py-3 px-4">Period</th>
+                  <th className="text-left py-3 px-4">Status</th>
+                  <th className="py-3 px-4"></th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200">
-                {deals.map(deal => (
-                  <tr key={deal._id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 text-sm text-gray-900">
-                      {products.find(p => p._id === deal.productId)?.title}
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
-                        {deal.discountAmount}{deal.discountType === "percentage" ? "%" : " USD"}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-500">
-                      {new Date(deal.startDate).toLocaleDateString()} - 
-                      {new Date(deal.endDate).toLocaleDateString()}
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        deal.isActive 
-                          ? 'bg-green-100 text-green-800'
-                          : 'bg-gray-100 text-gray-800'
-                      }`}>
-                        {deal.isActive ? 'Active' : 'Inactive'}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-sm font-medium space-x-2">
-                      <button
-                        onClick={() => editDeal(deal)}
-                        className="text-blue-600 hover:text-blue-900 bg-blue-50 px-3 py-1 rounded-md transition-colors"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => deleteDeal(deal)}
-                        className="text-red-600 hover:text-red-900 bg-red-50 px-3 py-1 rounded-md transition-colors"
-                      >
-                        Delete
-                      </button>
+              <tbody>
+                {deals.length > 0 ? (
+                  deals.map(deal => (
+                    <tr key={deal._id} className="border-b hover:bg-gray-100">
+                      <td className="py-3 px-4">
+                        {products.find(p => p._id === deal.productId)?.title}
+                      </td>
+                      <td className="py-3 px-4">
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                          {deal.discountAmount}{deal.discountType === "percentage" ? "%" : " USD"}
+                        </span>
+                      </td>
+                      <td className="py-3 px-4 text-gray-600">
+                        {new Date(deal.startDate).toLocaleDateString()} - 
+                        {new Date(deal.endDate).toLocaleDateString()}
+                      </td>
+                      <td className="py-3 px-4">
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                          deal.isActive 
+                            ? 'bg-green-100 text-green-800'
+                            : 'bg-gray-100 text-gray-800'
+                        }`}>
+                          {deal.isActive ? 'Active' : 'Inactive'}
+                        </span>
+                      </td>
+                      <td className="py-3 px-4 text-right">
+                        <button
+                          onClick={() => editDeal(deal)}
+                          className="bg-cyan-800 text-sm text-white rounded-md py-1 px-3 hover:bg-cyan-700 mr-2"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => deleteDeal(deal)}
+                          className="bg-red-800 text-sm text-white rounded-md py-1 px-3 hover:bg-red-700"
+                        >
+                          Delete
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="5" className="text-center py-4 text-gray-500">
+                      No deals found. Create your first deal above.
                     </td>
                   </tr>
-                ))}
+                )}
               </tbody>
             </table>
           </div>
-        </div>
+        )}
       </div>
     </Layout>
   );

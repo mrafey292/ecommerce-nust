@@ -38,17 +38,17 @@ export default function OrdersPage() {
       <div className="bg-white shadow-md rounded-lg p-6">
         <table className="w-full border-collapse border border-gray-200">
           <thead>
-            <tr className="bg-gray-100">
-              <th className="border border-gray-200 px-4 py-2 text-left text-gray-600 font-medium">
+            <tr className="bg-cyan-800 text-white">
+              <th className="border border-gray-200 px-4 py-2 text-left ">
                 Date
               </th>
-              <th className="border border-gray-200 px-4 py-2 text-left text-gray-600 font-medium">
+              <th className="border border-gray-200 px-4 py-2 text-left ">
                 Recipient
               </th>
-              <th className="border border-gray-200 px-4 py-2 text-left text-gray-600 font-medium">
+              <th className="border border-gray-200 px-4 py-2 text-left">
                 Status
               </th>
-              <th className="border border-gray-200 px-4 py-2 text-left text-gray-600 font-medium">
+              <th className="border border-gray-200 px-4 py-2 text-left">
                 Total Items
               </th>
             </tr>

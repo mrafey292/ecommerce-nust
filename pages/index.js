@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import styles from './login.module.css';
+import Spinner from '@/components/Spinner';
 
 export default function Home() {
   const { data: session } = useSession();
@@ -11,26 +12,49 @@ export default function Home() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
 
   const handleEmailSignIn = async (e) => {
     e.preventDefault();
     setError('');
-    const result = await signIn('credentials', {
-      redirect: false,
-      email,
-      password,
-    });
+    setLoading(true);
+    try {
+      const result = await signIn('credentials', {
+        redirect: false,
+        email,
+        password,
+      });
 
-    if (result?.error) {
-      setError(result.error);
-    } else {
-      router.push('/dashboard');
+      if (result?.error) {
+        setError(result.error);
+      } else {
+        router.push('/dashboard');
+      }
+    } catch (error) {
+      setError('An error occurred during sign in');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    setGoogleLoading(true);
+    try {
+      await signIn('google');
+    } catch (error) {
+      setError('An error occurred during Google sign in');
+      setGoogleLoading(false);
     }
   };
 
   if (session) {
     router.push('/dashboard');
-    return null;
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <Spinner />
+      </div>
+    );
   }
 
   return (
@@ -38,8 +62,19 @@ export default function Home() {
       <div className={styles.card}>
         <h1 className={styles.heading}>Sign In</h1>
 
-        <button onClick={() => signIn('google')} className={styles.googleButton}>
-          Sign In with Google
+        <button 
+          onClick={handleGoogleSignIn} 
+          className={styles.googleButton}
+          disabled={googleLoading || loading}
+        >
+          {googleLoading ? (
+            <div className="flex items-center justify-center gap-2">
+              <Spinner />
+              <span>Signing in with Google...</span>
+            </div>
+          ) : (
+            'Sign In with Google'
+          )}
         </button>
 
         <div className={styles.divider}>OR</div>
@@ -52,6 +87,7 @@ export default function Home() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
+              disabled={loading || googleLoading}
             />
           </div>
           <div className={styles.inputGroup}>
@@ -61,10 +97,22 @@ export default function Home() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
+              disabled={loading || googleLoading}
             />
           </div>
-          <button type="submit" className={styles.submitButton}>
-            Sign In
+          <button 
+            type="submit" 
+            className={styles.submitButton}
+            disabled={loading || googleLoading}
+          >
+            {loading ? (
+              <div className="flex items-center justify-center gap-2">
+                <Spinner />
+                <span>Signing in...</span>
+              </div>
+            ) : (
+              'Sign In'
+            )}
           </button>
         </form>
 

@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { withSwal } from "react-sweetalert2";
 import { set } from "mongoose";
+import Spinner from "@/components/Spinner";
 
 function Categories({ swal }) {
   const [name, setName] = useState("");
@@ -10,14 +11,24 @@ function Categories({ swal }) {
   const [parentCategory, setParentCategory] = useState("");
   const [categories, setCategories] = useState([]);
   const [properties, setProperties] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+
   useEffect(() => {
     fetchCategories();
   }, []);
+
   function fetchCategories() {
+    setLoading(true);
     axios.get("/api/categories").then((result) => {
       setCategories(result.data);
+      setLoading(false);
+    }).catch(error => {
+      console.error("Error fetching categories:", error);
+      setLoading(false);
     });
   }
+
   async function saveCategory(ev) {
     ev.preventDefault();
     if (!name.trim()) {
@@ -29,6 +40,7 @@ function Categories({ swal }) {
       return;
     }
 
+    setSaving(true);
     const data = {
       name,
       parentCategory,
@@ -38,18 +50,30 @@ function Categories({ swal }) {
       })),
     };
 
-    if (editedCategory) {
-      data._id = editedCategory._id;
-      await axios.put("/api/categories", data);
-      setEditedCategory(null);
-    } else {
-      await axios.post("/api/categories", data);
+    try {
+      if (editedCategory) {
+        data._id = editedCategory._id;
+        await axios.put("/api/categories", data);
+        setEditedCategory(null);
+      } else {
+        await axios.post("/api/categories", data);
+      }
+      setName("");
+      setParentCategory("");
+      setProperties([]);
+      fetchCategories();
+    } catch (error) {
+      console.error("Error saving category:", error);
+      swal.fire({
+        title: "Error",
+        text: "Failed to save category. Please try again.",
+        icon: "error",
+      });
+    } finally {
+      setSaving(false);
     }
-    setName("");
-    setParentCategory("");
-    setProperties([]);
-    fetchCategories();
   }
+
   function editCategory(category) {
     setEditedCategory(category);
     setName(category.name);
@@ -61,6 +85,7 @@ function Categories({ swal }) {
       }))
     );
   }
+
   function deleteCategory(category) {
     swal
       .fire({
@@ -80,6 +105,7 @@ function Categories({ swal }) {
         }
       });
   }
+
   function addProperty() {
     setProperties((prev) => {
       return [...prev, { name: "", value: "" }];
@@ -109,13 +135,10 @@ function Categories({ swal }) {
       });
     });
   }
+
   return (
     <Layout>
-      <h1
-        style={{ fontSize: "24px", fontWeight: "bold", marginBottom: "20px" }}
-      >
-        Categories
-      </h1>
+      <h1 className="text-2xl font-bold mb-4">Categories</h1>
       <label
         style={{ display: "block", marginBottom: "10px", fontWeight: "bold" }}
       >
@@ -249,86 +272,68 @@ function Categories({ swal }) {
           )}
           <button
             type="submit"
-            className="btn-primary py-1"
-            style={{
-              backgroundColor: "#28a745",
-              color: "#fff",
-              padding: "10px 20px",
-              border: "none",
-              borderRadius: "4px",
-              cursor: "pointer",
-            }}
+            className="btn-primary py-1 px-4"
+            disabled={saving}
           >
-            Save
+            {saving ? (
+              <div className="flex items-center gap-2">
+                <Spinner />
+                <span>Saving...</span>
+              </div>
+            ) : (
+              <span>Save</span>
+            )}
           </button>
         </div>
       </form>
-      {!editedCategory && (
-        <table
-          className="basic mt-4"
-          style={{
-            width: "100%",
-            borderCollapse: "collapse",
-            marginTop: "20px",
-          }}
-        >
-          <thead>
+
+      {loading ? (
+        <div className="flex justify-center items-center h-64">
+          <Spinner />
+        </div>
+      ) : (
+        <table className="w-full border-collapse bg-white shadow-md rounded-lg overflow-hidden">
+          <thead className="bg-cyan-800 text-white">
             <tr>
-              <td style={{ border: "1px solid #ccc", padding: "10px" }}>
-                Category Name
-              </td>
-              <td style={{ border: "1px solid #ccc", padding: "10px" }}>
-                Parent Category
-              </td>
-              <td style={{ border: "1px solid #ccc", padding: "10px" }}></td>
+              <th className="text-left py-3 px-4">Category Name</th>
+              <th className="text-left py-3 px-4">Parent Category</th>
+              <th className="py-3 px-4"></th>
             </tr>
           </thead>
           <tbody>
-            {categories.length > 0 &&
+            {categories.length > 0 ? (
               categories.map((category) => (
-                <tr>
-                  <td style={{ border: "1px solid #ccc", padding: "10px" }}>
-                    {category.name}
-                  </td>
-                  <td style={{ border: "1px solid #ccc", padding: "10px" }}>
-                    {category?.parent?.name}
-                  </td>
-                  <td style={{ border: "1px solid #ccc", padding: "10px" }}>
+                <tr key={category._id} className="border-b hover:bg-gray-100">
+                  <td className="py-3 px-4">{category.name}</td>
+                  <td className="py-3 px-4">{category?.parent?.name}</td>
+                  <td className="py-3 px-4 text-right">
                     <button
                       onClick={() => editCategory(category)}
-                      className="btn-primary mr-1"
-                      style={{
-                        backgroundColor: "#007bff",
-                        color: "#fff",
-                        padding: "5px 10px",
-                        border: "none",
-                        borderRadius: "4px",
-                        cursor: "pointer",
-                      }}
+                      className="bg-cyan-800 text-sm text-white rounded-md py-1 px-3 hover:bg-cyan-700 mr-2"
                     >
                       Edit
                     </button>
                     <button
                       onClick={() => deleteCategory(category)}
-                      className="btn-primary"
-                      style={{
-                        backgroundColor: "#dc3545",
-                        color: "#fff",
-                        padding: "5px 10px",
-                        border: "none",
-                        borderRadius: "4px",
-                        cursor: "pointer",
-                      }}
+                      className="bg-red-800 text-sm text-white rounded-md py-1 px-3 hover:bg-red-700"
                     >
                       Delete
                     </button>
                   </td>
                 </tr>
-              ))}
+              ))
+            ) : (
+              <tr>
+                <td colSpan={3} className="text-center py-4 text-gray-500">
+                  No categories found
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       )}
     </Layout>
   );
 }
+
 export default withSwal(({ swal }, ref) => <Categories swal={swal} />);
