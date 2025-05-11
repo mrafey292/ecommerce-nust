@@ -79,6 +79,10 @@ export default function ProductForm({
     setImages(images);
   }
 
+  function deleteImage(imageToDelete) {
+    setImages((prevImages) => prevImages.filter((image) => image !== imageToDelete));
+  }
+
   function setProductProp(propName, value) {
     setProductProperties((prev) => {
       const newProductProps = { ...prev };
@@ -88,20 +92,20 @@ export default function ProductForm({
   }
 
   const propertiesToFill = [];
-if (categories.length > 0 && category) {
-  let catInfo = categories.find(({ _id }) => _id === category);
-  if (catInfo) {
-    propertiesToFill.push(...catInfo.properties);
-    while (catInfo?.parent?._id) {
-      const parentCat = categories.find(
-        ({ _id }) => _id === catInfo?.parent?._id
-      );
-      if (!parentCat) break; // Break the loop if the parent category is not found
-      propertiesToFill.push(...parentCat.properties);
-      catInfo = parentCat;
+  if (categories.length > 0 && category) {
+    let catInfo = categories.find(({ _id }) => _id === category);
+    if (catInfo) {
+      propertiesToFill.push(...catInfo.properties);
+      while (catInfo?.parent?._id) {
+        const parentCat = categories.find(
+          ({ _id }) => _id === catInfo?.parent?._id
+        );
+        if (!parentCat) break; // Break the loop if the parent category is not found
+        propertiesToFill.push(...parentCat.properties);
+        catInfo = parentCat;
+      }
     }
   }
-}
   return (
     <div className="max-w-4xl mx-auto bg-white shadow-md rounded-lg p-6">
       <h2 className="text-2xl font-semibold text-gray-800 mb-6">Product Form</h2>
@@ -130,7 +134,7 @@ if (categories.length > 0 && category) {
             {categories.length > 0 &&
               categories.map((c) => <option key={c._id} value={c._id}>{c.name}</option>)}
           </select>
-  
+
           {propertiesToFill.length > 0 &&
             propertiesToFill.map((p) => (
               <div className="flex items-center gap-2 mt-4" key={p.name}>
@@ -149,7 +153,7 @@ if (categories.length > 0 && category) {
               </div>
             ))}
         </div>
-  
+
         <div className="mb-6">
           <label className="block text-gray-700 text-sm font-medium mb-2">Photos</label>
           <div className="mb-4 flex flex-wrap gap-2">
@@ -162,9 +166,29 @@ if (categories.length > 0 && category) {
                 images.map((link) => (
                   <div
                     key={link}
-                    className="h-24 w-24 bg-white p-2 shadow-sm rounded-lg border border-gray-300"
+                    className="relative h-24 w-24 bg-white p-2 shadow-sm rounded-lg border border-gray-300"
                   >
                     <img src={link} alt="" className="rounded-lg object-cover h-full w-full" />
+                    <button
+                      type="button"
+                      onClick={() => deleteImage(link)}
+                      className="absolute top-1 right-1 bg-red-600 text-white rounded-full p-1 hover:bg-red-700"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        strokeWidth={1.5}
+                        stroke="currentColor"
+                        className="w-4 h-4"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M6 18L18 6M6 6l12 12"
+                        />
+                      </svg>
+                    </button>
                   </div>
                 ))}
             </ReactSortable>
@@ -193,7 +217,7 @@ if (categories.length > 0 && category) {
             </label>
           </div>
         </div>
-  
+
         <div className="mb-6">
           <label
             className="block text-gray-700 text-sm font-medium mb-2"

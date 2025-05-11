@@ -1,13 +1,13 @@
 import Layout from "@/components/Layout";
 import Link from "next/link";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import axios from "axios";
-import { useState } from "react";
 import Spinner from "@/components/Spinner";
 
 export default function Products() {
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [searchQuery, setSearchQuery] = useState(""); // State for search query
 
     useEffect(() => {
         setLoading(true);
@@ -20,6 +20,11 @@ export default function Products() {
         });
     }, []);
 
+    // Filter products based on search query
+    const filteredProducts = products.filter(product =>
+        product.title.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
     return (
         <Layout>
             <div className="p-6 bg-gray-100 min-h-screen">
@@ -31,6 +36,16 @@ export default function Products() {
                     >
                         Add New Product
                     </Link>
+                </div>
+                {/* Search Bar */}
+                <div className="mb-4">
+                    <input
+                        type="text"
+                        placeholder="Search products..."
+                        className="w-full p-2 border border-gray-300 rounded-md"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                    />
                 </div>
                 {loading ? (
                     <div className="flex justify-center items-center h-64">
@@ -46,8 +61,8 @@ export default function Products() {
                             </tr>
                         </thead>
                         <tbody>
-                            {products.length > 0 ? (
-                                products.map(product => (
+                            {filteredProducts.length > 0 ? (
+                                filteredProducts.map(product => (
                                     <tr key={product._id} className="border-b hover:bg-gray-100">
                                         <td className="py-3 px-4">{product.title}</td>
                                         <td className="py-3 px-4">${product.price}</td>
