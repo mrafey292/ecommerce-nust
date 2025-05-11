@@ -4,7 +4,7 @@ import { Order } from "@/models/Order";
 export default async function handler(req, res) {
   await dbConnect();
   const { method } = req;
-  const { id } = req.query;
+  const { id, limit } = req.query;
 
   try {
     if (method === "GET") {
@@ -16,8 +16,12 @@ export default async function handler(req, res) {
         }
         res.json(order);
       } else {
-        // Fetch all orders
-        const orders = await Order.find().sort({ createdAt: -1 });
+        // Fetch all orders with optional limit
+        const query = Order.find().sort({ createdAt: -1 });
+        if (limit) {
+          query.limit(parseInt(limit, 10));
+        }
+        const orders = await query;
         res.json(orders);
       }
     } else {
