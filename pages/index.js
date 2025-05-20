@@ -88,6 +88,7 @@ export default function Home() {
               onChange={(e) => setEmail(e.target.value)}
               required
               disabled={loading || googleLoading}
+              className='text-gray-700'
             />
           </div>
           <div className={styles.inputGroup}>
@@ -98,6 +99,7 @@ export default function Home() {
               onChange={(e) => setPassword(e.target.value)}
               required
               disabled={loading || googleLoading}
+              className='text-gray-700'
             />
           </div>
           <button 

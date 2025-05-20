@@ -41,6 +41,7 @@ export default function Signup() {
               onChange={(e) => setName(e.target.value)}
               required
               disabled={loading}
+              className='text-gray-700'
             />
           </div>
           <div className={styles.inputGroup}>
@@ -51,6 +52,7 @@ export default function Signup() {
               onChange={(e) => setEmail(e.target.value)}
               required
               disabled={loading}
+              className='text-gray-700'
             />
           </div>
           <div className={styles.inputGroup}>
@@ -61,6 +63,7 @@ export default function Signup() {
               onChange={(e) => setPassword(e.target.value)}
               required
               disabled={loading}
+              className='text-gray-700'
             />
           </div>
           <button type="submit" className={styles.button} disabled={loading}>
